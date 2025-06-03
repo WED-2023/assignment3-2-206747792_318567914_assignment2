@@ -46,13 +46,14 @@ router.post('/viewed/:recipeId', async (req, res, next) => {
   try {
     const user_id = req.session.user_id;
     const recipe_id = req.params.recipeId;
-    if (!recipe_id) return res.status(400).send("Recipe ID is required");
+    if (!recipe_id || !/^[0-9]+$/.test(recipe_id)) return res.status(400).send("Valid Recipe ID is required");
     await user_utils.saveViewedRecipe(user_id, recipe_id);
     res.status(200).send("Recipe marked as viewed");
   } catch (err) {
     next(err);
   }
 });
+
 
 /**
  * Route 9a: Add recipe to favorites
@@ -61,7 +62,7 @@ router.post('/favorites', async (req, res, next) => {
   try {
     const user_id = req.session.user_id;
     const recipe_id = req.body.recipeId;
-    if (!recipe_id) return res.status(400).send("Recipe ID is required");
+    if (!recipe_id || !/^[0-9]+$/.test(recipe_id)) return res.status(400).send("Valid Recipe ID is required");
     await user_utils.markAsFavorite(user_id, recipe_id);
     res.status(200).send("The recipe was successfully saved as favorite");
   } catch (error) {
@@ -105,6 +106,9 @@ router.post('/my-recipes', async (req, res, next) => {
   try {
     const user_id = req.session.user_id;
     const recipeData = req.body;
+    if (!recipeData.title || !recipeData.instructions || !recipeData.ingredients) {
+      return res.status(400).send("Missing required fields for personal recipe");
+    }
     await user_utils.saveUserRecipe(user_id, recipeData);
     res.status(201).send("Recipe saved successfully");
   } catch (error) {
@@ -119,7 +123,7 @@ router.get('/my-recipes', async (req, res, next) => {
   try {
     const user_id = req.session.user_id;
     const recipes = await user_utils.getUserRecipes(user_id);
-    res.status(200).send(recipes);
+    res.status(200).send(recipes.map(user_utils.extractUserRecipePreviewData));
   } catch (error) {
     next(error);
   }
@@ -132,13 +136,15 @@ router.post('/family-recipes', async (req, res, next) => {
   try {
     const user_id = req.session.user_id;
     const recipeData = req.body;
+    if (!recipeData.title || !recipeData.creatorName || !recipeData.whenCooked) {
+      return res.status(400).send("Missing required fields for family recipe");
+    }
     await user_utils.saveFamilyRecipe(user_id, recipeData);
     res.status(201).send("Family recipe saved successfully");
   } catch (error) {
     next(error);
   }
 });
-
 /**
  * Route 13: Get all family recipes of the user
  */
@@ -146,11 +152,27 @@ router.get('/family-recipes', async (req, res, next) => {
   try {
     const user_id = req.session.user_id;
     const recipes = await user_utils.getFamilyRecipes(user_id);
-    res.status(200).send(recipes);
+    const previewData = recipes.map(user_utils.extractFamilyRecipePreviewData);
+    res.status(200).send(previewData);
   } catch (error) {
     next(error);
   }
 });
+
+/**
+ * Route 15: Get a specific family recipe by ID
+ */
+router.get('/family-recipes/:id', async (req, res, next) => {
+  try {
+    const user_id = req.session.user_id;
+    const recipe = await user_utils.getFamilyRecipeById(user_id, req.params.id);
+    if (!recipe) return res.status(404).send("Recipe not found");
+    res.status(200).send(recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
 
 /**
  * Route 14: Get a specific personal recipe by ID
