@@ -83,6 +83,20 @@ router.get('/favorites', async (req, res, next) => {
     next(error);
   }
 });
+/**
+ * Route 9c: Check if a recipe is marked as favorite
+ */
+router.get('/favorites/:recipeId', async (req, res, next) => {
+  try {
+    const user_id = req.session.user_id;
+    const recipe_id = req.params.recipeId;
+    const isFav = await user_utils.isRecipeFavorite(user_id, recipe_id);
+    res.status(200).send({ recipeId: recipe_id, isFavorite: isFav });
+  } catch (error) {
+    next(error);
+  }
+});
+
 
 /**
  * Route 10: Save a new personal recipe

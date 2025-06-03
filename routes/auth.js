@@ -9,7 +9,8 @@ function validateRegistrationInput(data) {
   const errors = [];
 
   const usernameRegex = /^[A-Za-z]{3,8}$/;
-  const passwordRegex = /^(?=.*[0-9])(?=.*[\W_]).{5,10}$/;
+const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>/?]).{5,10}$/;
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!usernameRegex.test(data.username))
@@ -64,10 +65,19 @@ router.post("/Register", async (req, res, next) => {
       parseInt(process.env.bcrypt_saltRounds)
     );
 
-    await DButils.execQuery(
-      `INSERT INTO users (username, firstname, lastname, country, password, email, profilePic) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [user_details.username, user_details.firstname, user_details.lastname, user_details.country, hash_password, user_details.email, user_details.profilePic]
-    );
+ await DButils.execQuery(
+  `INSERT INTO users (username, firstname, lastname, country, hashed_password, email, profilePic) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  [
+    user_details.username,
+    user_details.firstname,
+    user_details.lastname,
+    user_details.country,
+    hash_password,
+    user_details.email,
+    user_details.profilePic
+  ]
+);
+
     res.status(201).send({ message: "user created", success: true });
   } catch (error) {
     next(error);
@@ -85,10 +95,11 @@ router.post("/Login", async (req, res, next) => {
         `SELECT * FROM users WHERE username = ?`, [req.body.username]
       )
     )[0];
-
-    if (!user || !bcrypt.compareSync(req.body.password, user.password)) {
+    
+    if (!user || !bcrypt.compareSync(req.body.password, user.hashed_password)) {
       throw { status: 401, message: "Username or Password incorrect" };
     }
+
     req.session.user_id = user.user_id;
     console.log("session user_id login: " + req.session.user_id);
     res.status(200).send({ message: "Login succeeded", success: true, username: user.username });
@@ -96,6 +107,7 @@ router.post("/Login", async (req, res, next) => {
     next(error);
   }
 });
+
 
 router.post("/Logout", function (req, res) {
   if (!req.session.user_id) {

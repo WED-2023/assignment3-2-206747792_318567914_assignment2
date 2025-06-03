@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS recipes_db;
+USE recipes_db;
+
 DROP TABLE IF EXISTS FavoriteRecipes;
 DROP TABLE IF EXISTS ViewedRecipes;
 DROP TABLE IF EXISTS UserRecipes;
@@ -41,6 +44,7 @@ CREATE TABLE UserRecipes (
     vegetarian BOOLEAN,
     glutenFree BOOLEAN,
     servings INT,
+    ingredients TEXT, 
     instructions TEXT,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
@@ -53,5 +57,9 @@ CREATE TABLE FamilyRecipes (
     ingredients TEXT,
     instructions TEXT,
     tradition TEXT,
+    readyInMinutes INT,         
+    popularity INT,            
+    creatorName VARCHAR(255),   
+    whenCooked VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

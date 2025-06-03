@@ -71,10 +71,20 @@ async function searchRecipes(query, cuisine, diet, intolerances) {
 }
 
 
+async function getRecipesPreview(recipe_ids_list) {
+  const previewPromises = recipe_ids_list.map((id) => getRecipeInformation(id));
+  const previewResponses = await Promise.all(previewPromises);
+
+  return previewResponses.map((response) =>
+    extractRecipePreviewData(response.data)
+  );
+}
+
 
 exports.getRecipeInformation = getRecipeInformation;
 exports.getRecipeDetails = getRecipeDetails;
 exports.extractRecipePreviewData = extractRecipePreviewData;
 exports.searchRecipes = searchRecipes;
+exports.getRecipesPreview = getRecipesPreview;
 
 
