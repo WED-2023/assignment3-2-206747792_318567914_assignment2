@@ -40,11 +40,11 @@ router.post("/Register", async (req, res, next) => {
       return res.status(400).send({ success: false, message: validationErrors.join(", ") });
     }
 
-    const countryList = await axios.get("https://restcountries.com/v3.1/all");
-    const validCountries = countryList.data.map(c => c.name.common);
-    if (!validCountries.includes(req.body.country)) {
-      return res.status(400).send({ success: false, message: "Invalid country name" });
-    }
+    // const countryList = await axios.get("https://restcountries.com/v3.1/all");
+    // const validCountries = countryList.data.map(c => c.name.common);
+    // if (!validCountries.includes(req.body.country)) {
+    //   return res.status(400).send({ success: false, message: "Invalid country name" });
+    // }
 
     let user_details = {
       username: req.body.username,
